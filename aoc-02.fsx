@@ -28,17 +28,17 @@ let parseEntry (s: string): Entry =
 //
 let isValid (entry: Entry): bool =
     let count =
-        entry.Password.ToCharArray()
-        |> Array.filter (fun c -> c = entry.Char)
-        |> Array.length
+        entry.Password
+        |> Seq.filter (fun c -> c = entry.Char)
+        |> Seq.length
 
     entry.FirstInt <= count && count <= entry.SecondInt
 
 let solve1 input =
     input
-    |> Array.map parseEntry
-    |> Array.filter isValid
-    |> Array.length
+    |> Seq.map parseEntry
+    |> Seq.filter isValid
+    |> Seq.length
 
 #time "on"
 let solution1 = loadInput() |> solve1
@@ -60,9 +60,9 @@ let isValid2 (entry: Entry): bool =
 
 let solve2 input =
     input
-    |> Array.map parseEntry
-    |> Array.filter isValid2
-    |> Array.length
+    |> Seq.map parseEntry
+    |> Seq.filter isValid2
+    |> Seq.length
 
 #time "on"
 let solution2 = loadInput() |> solve2
@@ -81,10 +81,11 @@ let solution2 = loadInput() |> solve2
 //      Char = g.[3].Value.[0]
 //      Password = g.[4].Value }
 //
-//let solve1b =
-//    Array.map parseUsingRegex
-//    >> Array.filter isValid
-//    >> Array.length
+//let solve1b input =
+//    input
+//    |> Seq.map parseUsingRegex
+//    |> Seq.filter isValid
+//    |> Seq.length
 //
 //#time "on"
 //let solution1b = loadInput() |> solve1b
