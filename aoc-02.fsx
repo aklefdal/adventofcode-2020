@@ -8,13 +8,13 @@ open System.IO
 //
 let loadInput () = "aoc-02-input.txt" |> File.ReadAllLines
 
-type PasswordPolicy =
+type Entry =
     { FirstInt: int
       SecondInt: int
       Char: char
       Password: string }
 
-let parse (s: string): PasswordPolicy =
+let parseEntry (s: string): Entry =
     let a =
         s.Split([| '-'; ' '; ':' |], StringSplitOptions.RemoveEmptyEntries)
 
@@ -26,7 +26,7 @@ let parse (s: string): PasswordPolicy =
 //
 // Part 1
 //
-let isValid (entry: PasswordPolicy): bool =
+let isValid (entry: Entry): bool =
     let count =
         entry.Password.ToCharArray()
         |> Array.filter (fun c -> c = entry.Char)
@@ -34,10 +34,11 @@ let isValid (entry: PasswordPolicy): bool =
 
     entry.FirstInt <= count && count <= entry.SecondInt
 
-let solve1 =
-    Array.map parse
-    >> Array.filter isValid
-    >> Array.length
+let solve1 input =
+    input
+    |> Array.map parseEntry
+    |> Array.filter isValid
+    |> Array.length
 
 #time "on"
 let solution1 = loadInput() |> solve1
@@ -52,15 +53,16 @@ let isCharAtPosition (c: char) (i: int) (s: string): bool =
     else
         s.Chars(i - 1) = c
 
-let isValid2 (entry: PasswordPolicy): bool =
-    // Using <> as XOR-operator: true if one is true and one is , false if both are true or both are false
+let isValid2 (entry: Entry): bool =
+    // Using <> as XOR-operator: true if one is true and one is false, false if both are true or both are false
     (isCharAtPosition entry.Char entry.FirstInt entry.Password)
     <> (isCharAtPosition entry.Char entry.SecondInt entry.Password)
 
-let solve2 = 
-    Array.map parse
-    >> Array.filter isValid2
-    >> Array.length
+let solve2 input =
+    input
+    |> Array.map parseEntry
+    |> Array.filter isValid2
+    |> Array.length
 
 #time "on"
 let solution2 = loadInput() |> solve2
@@ -72,7 +74,7 @@ let solution2 = loadInput() |> solve2
 //
 //let rgx = Regex(@"^(\d{1,2})-(\d{1,2}) ([a-z]): (\w*)$")
 //
-//let parseUsingRegex (s: string): PasswordPolicy =
+//let parseUsingRegex (s: string): Entry =
 //    let g = rgx.Match(s).Groups
 //    { FirstInt = g.[1].Value |> int
 //      SecondInt = g.[2].Value |> int
