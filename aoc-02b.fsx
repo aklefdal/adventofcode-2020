@@ -11,7 +11,8 @@
     let min = a.[0] |> int 
     let max = a.[1] |> int 
     let letter = a.[2].[0]
-    let count = a.[3] |> Seq.sumBy (fun c -> if c = letter then 1 else 0)
+    let password = a.[3]
+    let count = password |> Seq.filter (fun c -> c = letter) |> Seq.length
 
     min <= count && count <= max)
 |> Seq.length
@@ -27,7 +28,7 @@
     let pos2 = a.[1] |> int 
     let letter = a.[2].[0]
     let password = a.[3]
-    let isCharAtPosition i = i <= password.Length && password.Chars(i - 1) = letter
+    let isCharAtPosition i = i <= password.Length && password.[i - 1] = letter
 
     isCharAtPosition pos1 <> isCharAtPosition pos2)
 |> Seq.length
