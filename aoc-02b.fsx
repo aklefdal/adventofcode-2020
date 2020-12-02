@@ -8,10 +8,12 @@
 |> System.IO.File.ReadAllLines
 |> Seq.filter (fun s ->
     let a = s.Split([| '-'; ' '; ':' |], System.StringSplitOptions.RemoveEmptyEntries)
+    let min = a.[0] |> int 
+    let max = a.[1] |> int 
     let letter = a.[2].[0]
     let count = a.[3] |> Seq.sumBy (fun c -> if c = letter then 1 else 0)
 
-    (a.[0] |> int) <= count && count <= (a.[1] |> int))
+    min <= count && count <= max)
 |> Seq.length
 
 //
@@ -21,11 +23,11 @@
 |> System.IO.File.ReadAllLines
 |> Seq.filter (fun s ->
     let a = s.Split([| '-'; ' '; ':' |], System.StringSplitOptions.RemoveEmptyEntries)
+    let pos1 = a.[0] |> int 
+    let pos2 = a.[1] |> int 
     let letter = a.[2].[0]
     let password = a.[3]
     let isCharAtPosition i = i <= password.Length && password.Chars(i - 1) = letter
-    let pos1 = a.[0] |> int 
-    let pos2 = a.[1] |> int 
 
     isCharAtPosition pos1 <> isCharAtPosition pos2)
 |> Seq.length
