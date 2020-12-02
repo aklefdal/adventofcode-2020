@@ -1,44 +1,31 @@
 // https://adventofcode.com/2020/day/2
 // More terse solution
 
-open System
-open System.IO
-
-//
-// Input
-//
-let loadInput () = "aoc-02-input.txt" |> File.ReadAllLines
-
 //
 // Part 1
 //
-let isValid (s: string): bool =
-    let a = s.Split([| '-'; ' '; ':' |], StringSplitOptions.RemoveEmptyEntries)
+"aoc-02-input.txt"
+|> System.IO.File.ReadAllLines
+|> Seq.filter (fun s ->
+    let a = s.Split([| '-'; ' '; ':' |], System.StringSplitOptions.RemoveEmptyEntries)
     let letter = a.[2].[0]
     let count = a.[3] |> Seq.sumBy (fun c -> if c = letter then 1 else 0)
 
-    (a.[0] |> int) <= count && count <= (a.[1] |> int)
-
-let solution1 =
-    loadInput ()
-    |> Seq.filter isValid
-    |> Seq.length
+    (a.[0] |> int) <= count && count <= (a.[1] |> int))
+|> Seq.length
 
 //
 // Part 2
 //
-let isCharAtPosition c i (s: string) =
-    i <= s.Length && s.Chars(i - 1) = c
-
-let isValid2 (s: string): bool =
-    let a = s.Split([| '-'; ' '; ':' |], StringSplitOptions.RemoveEmptyEntries)
-
+"aoc-02-input.txt"
+|> System.IO.File.ReadAllLines
+|> Seq.filter (fun s ->
+    let a = s.Split([| '-'; ' '; ':' |], System.StringSplitOptions.RemoveEmptyEntries)
     let letter = a.[2].[0]
     let password = a.[3]
-    (isCharAtPosition letter (a.[0] |> int) password)
-    <> (isCharAtPosition letter (a.[1] |> int) password)
+    let isCharAtPosition i = i <= password.Length && password.Chars(i - 1) = letter
+    let pos1 = a.[0] |> int 
+    let pos2 = a.[1] |> int 
 
-let solution2 =
-    loadInput ()
-    |> Seq.filter isValid2
-    |> Seq.length
+    isCharAtPosition pos1 <> isCharAtPosition pos2)
+|> Seq.length
