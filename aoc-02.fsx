@@ -48,7 +48,7 @@ let solution1 = loadInput() |> solve1
 // Part 2
 //
 let isCharAtPosition (s: string) c pos =
-    pos <= s.Length && s.Chars(pos - 1) = c
+    pos <= s.Length && s.[pos - 1] = c
 
 let isValid2 (entry: Entry): bool =
     // Using <> as XOR-operator: true if one is true and one is false, false if both are true or both are false
