@@ -2,26 +2,17 @@
 
 open System
 open System.IO
-open System.Text.RegularExpressions
 
+//
 // Input
-let inputFilename = "aoc-02-input.txt"
-let input = inputFilename |> File.ReadAllLines
+//
+let loadInput () = "aoc-02-input.txt" |> File.ReadAllLines
 
 type PasswordPolicy =
     { FirstInt: int
       SecondInt: int
       Char: char
       Password: string }
-
-// Part 1
-let isValid (entry: PasswordPolicy): bool =
-    let count =
-        entry.Password.ToCharArray()
-        |> Array.filter (fun c -> c = entry.Char)
-        |> Array.length
-
-    entry.FirstInt <= count && count <= entry.SecondInt
 
 let parse (s: string): PasswordPolicy =
     let a =
@@ -32,16 +23,29 @@ let parse (s: string): PasswordPolicy =
       Char = a.[2].[0]
       Password = a.[3] }
 
-#time "on"
-let solution1 =
-    input
-    |> Array.map parse
-    |> Array.filter isValid
-    |> Array.length
+//
+// Part 1
+//
+let isValid (entry: PasswordPolicy): bool =
+    let count =
+        entry.Password.ToCharArray()
+        |> Array.filter (fun c -> c = entry.Char)
+        |> Array.length
 
+    entry.FirstInt <= count && count <= entry.SecondInt
+
+let solve1 =
+    Array.map parse
+    >> Array.filter isValid
+    >> Array.length
+
+#time "on"
+let solution1 = loadInput() |> solve1
 #time "off"
 
+//
 // Part 2
+//
 let isCharAtPosition (c: char) (i: int) (s: string): bool =
     if s.Length < i then
         false
@@ -53,16 +57,19 @@ let isValid2 (entry: PasswordPolicy): bool =
     (isCharAtPosition entry.Char entry.FirstInt entry.Password)
     <> (isCharAtPosition entry.Char entry.SecondInt entry.Password)
 
+let solve2 = 
+    Array.map parse
+    >> Array.filter isValid2
+    >> Array.length
+
 #time "on"
-let solution2 =
-    input
-    |> Array.map parse
-    |> Array.filter isValid2
-    |> Array.length
+let solution2 = loadInput() |> solve2
 #time "off"
 
 //
 //// Part 1 using regex
+//open System.Text.RegularExpressions
+//
 //let rgx = Regex(@"^(\d{1,2})-(\d{1,2}) ([a-z]): (\w*)$")
 //
 //let parseUsingRegex (s: string): PasswordPolicy =
@@ -72,11 +79,11 @@ let solution2 =
 //      Char = g.[3].Value.[0]
 //      Password = g.[4].Value }
 //
-//#time "on"
-//let solution1b =
-//    input
-//    |> Array.map parseUsingRegex
-//    |> Array.filter isValid
-//    |> Array.length
-//#time "off"
+//let solve1b =
+//    Array.map parseUsingRegex
+//    >> Array.filter isValid
+//    >> Array.length
 //
+//#time "on"
+//let solution1b = loadInput() |> solve1b
+//#time "off"
