@@ -47,16 +47,13 @@ let solution1 = loadInput() |> solve1
 //
 // Part 2
 //
-let isCharAtPosition (c: char) (i: int) (s: string): bool =
-    if s.Length < i then
-        false
-    else
-        s.Chars(i - 1) = c
+let isCharAtPosition (s: string) c pos =
+    pos <= s.Length && s.Chars(pos - 1) = c
 
 let isValid2 (entry: Entry): bool =
     // Using <> as XOR-operator: true if one is true and one is false, false if both are true or both are false
-    (isCharAtPosition entry.Char entry.FirstInt entry.Password)
-    <> (isCharAtPosition entry.Char entry.SecondInt entry.Password)
+    (isCharAtPosition entry.Password entry.Char entry.FirstInt)
+    <> (isCharAtPosition entry.Password entry.Char entry.SecondInt)
 
 let solve2 input =
     input

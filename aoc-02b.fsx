@@ -27,8 +27,8 @@ let solution1 =
 //
 // Part 2
 //
-let isCharAtPosition (c: char) (i: int) (s: string): bool =
-    if s.Length < i then false else s.Chars(i - 1) = c
+let isCharAtPosition c i (s: string) =
+    i <= s.Length && s.Chars(i - 1) = c
 
 let isValid2 (s: string): bool =
     let a = s.Split([| '-'; ' '; ':' |], StringSplitOptions.RemoveEmptyEntries)
