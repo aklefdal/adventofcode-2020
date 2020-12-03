@@ -10,7 +10,7 @@ let isTree (x, y) =
     else
         input.[y].[x % inputWidth] = '#' |> Some
 
-let move (deltaX, deltaY) (posX, posY) =  posX + deltaX, posY + deltaY
+let move (dx, dy) (x, y) =  x + dx, y + dy
 
 let rec findTrees delta count pos =
     match pos |> isTree with
@@ -27,4 +27,26 @@ let solution1 = findTrees (3, 1) 0L (0, 0)
 let solution2 =
     [ 1, 1; 3, 1; 5, 1; 7, 1; 1, 2 ]
     |> List.map (fun delta -> findTrees delta 0L (0, 0))
+    |> List.reduce (*)
+
+// Using unfold, based upon https://github.com/codybartfast/advent-of-code/blob/main/Day03.fs
+// by https://twitter.com/codybartfast
+
+let getNextPosition (dx, dy) (x, y) =
+    match x + dx, y + dy with
+    | (_, newY) when newY >= inputLength -> None
+    | pos -> Some ((x, y), pos)
+
+let countTrees delta =
+    (0, 0)
+    |> Seq.unfold (getNextPosition delta)
+    |> Seq.map (fun (x, y) -> input.[y].[x % inputWidth])
+    |> Seq.filter ((=) '#')
+    |> Seq.length
+    
+let solution1b = (3, 1) |> countTrees
+
+let solution2b =
+    [ 1, 1; 3, 1; 5, 1; 7, 1; 1, 2 ]
+    |> List.map (countTrees >> int64)
     |> List.reduce (*)
