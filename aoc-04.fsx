@@ -43,7 +43,7 @@ let solution1 =
 // Part 2
 //
 let colourRegex = Regex("^#[0-9a-f]{6}$")
-let nineDigitsRegex = Regex("^[0-9]{9}$")
+let nineDigitsRegex = Regex("^\d{9}$")
 let isIntBetween min max (value: string) : bool =
     let valid, parsedValue = Int32.TryParse(value)
     valid && min <= parsedValue && parsedValue <= max
