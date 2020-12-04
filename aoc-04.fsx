@@ -54,13 +54,13 @@ let validateValue (kvp: KeyValuePair<string, string>) : bool =
     | "iyr" -> kvp.Value |> isIntBetween 2010 2020
     | "eyr" -> kvp.Value |> isIntBetween 2020 2030 
     | "hgt" ->
-        let v = kvp.Value
-        let length = v.Length
-        let n = v.Substring(0, length - 2)
-        let u = v.Substring(length - 2)
-        match u with
-        | "cm" -> n |> isIntBetween 150 193
-        | "in" -> n |> isIntBetween 59 76
+        let value = kvp.Value
+        let length = value.Length
+        let numberPart = value.Substring(0, length - 2)
+        let unitPart = value.Substring(length - 2)
+        match unitPart with
+        | "cm" -> numberPart |> isIntBetween 150 193
+        | "in" -> numberPart |> isIntBetween 59 76
         | _ -> false
     | "hcl" -> colourRegex.IsMatch(kvp.Value)
     | "ecl" ->
