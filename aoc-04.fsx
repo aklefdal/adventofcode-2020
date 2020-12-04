@@ -5,24 +5,24 @@ open System.Collections.Generic
 open System.Text.RegularExpressions
 
 let replace (old: string) (n: string) (s: string) = s.Replace(old, n)
-let split (chars: char []) (s: string) = s.Split(chars)
+let splitOnChar (c: char) (s: string) = s.Split([| c |], StringSplitOptions.RemoveEmptyEntries)
+let splitOnString (delimiter: string) (s: string) = s.Split([|delimiter|], StringSplitOptions.RemoveEmptyEntries)
 let newLine = "\r\n"
-
+let entryDelimiter = newLine + newLine
 let input =
     "aoc-04-input.txt" |> System.IO.File.ReadAllText
 
-// This is bad, I'm ashamed
 let entries =
     input
-    |> replace newLine " " // Put everything on one line
-    |> replace "  " "\t" // two newlines became two spaces, replace again with tab-character
-    |> split [| '\t' |] // Split into entries by tab-character
+    |> splitOnString entryDelimiter
+    |> Array.map (replace newLine " ") 
+
 let parsePassport (entry: string) =
     entry
-    |> split [| ' ' |]
+    |> splitOnChar ' '
     |> Array.map (fun t ->
         t
-        |> split [| ':' |]
+        |> splitOnChar ':'
         |> fun a -> a.[0], a.[1])
     |> dict
 
@@ -44,33 +44,25 @@ let solution1 =
 //
 let colourRegex = Regex("^#[0-9a-f]{6}$")
 let nineDigitsRegex = Regex("^[0-9]{9}$")
-
+let isIntBetween min max (value: string) : bool =
+    let valid, parsedValue = Int32.TryParse(value)
+    valid && min <= parsedValue && parsedValue <= max
+   
 let validateValue (kvp: KeyValuePair<string, string>) : bool =
     match kvp.Key with
-    | "byr" ->
-        let valid, birthYear = Int32.TryParse(kvp.Value)
-        valid && 1920 <= birthYear && birthYear <= 2002
-    | "iyr" ->
-        let valid, issueYear = Int32.TryParse(kvp.Value)
-        valid && 2010 <= issueYear && issueYear <= 2020
-    | "eyr" -> 
-        let valid, expirationYear = Int32.TryParse(kvp.Value)
-        valid && 2020 <= expirationYear && expirationYear <= 2030
+    | "byr" -> kvp.Value |> isIntBetween 1920 2002
+    | "iyr" -> kvp.Value |> isIntBetween 2010 2020
+    | "eyr" -> kvp.Value |> isIntBetween 2020 2030 
     | "hgt" ->
         let v = kvp.Value
         let length = v.Length
         let n = v.Substring(0, length - 2)
         let u = v.Substring(length - 2)
         match u with
-        | "cm" ->
-            let valid, heightInCm = Int32.TryParse(n)
-            valid && 150 <= heightInCm && heightInCm <= 193
-        | "in" ->
-            let valid, heightInInches = Int32.TryParse(n)
-            valid && 59 <= heightInInches && heightInInches <= 76
+        | "cm" -> n |> isIntBetween 150 193
+        | "in" -> n |> isIntBetween 59 76
         | _ -> false
-    | "hcl" ->
-        colourRegex.IsMatch(kvp.Value)
+    | "hcl" -> colourRegex.IsMatch(kvp.Value)
     | "ecl" ->
         ["amb"; "blu"; "brn"; "gry"; "grn"; "hzl"; "oth"]
         |> List.contains kvp.Value 
