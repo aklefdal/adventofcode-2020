@@ -39,6 +39,6 @@ let solution1 = seatIds |> Seq.max
 seatIds
 |> Array.sort
 |> Array.pairwise
-|> Array.filter (fun (f, s) -> s - f > 1)
+|> Array.filter (fun (f, s) -> s - f = 2)
 |> Array.head
-|> fun (f, s) -> (f + s) / 2
+|> fun (f, _) -> f + 1
