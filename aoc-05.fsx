@@ -10,28 +10,17 @@ let takeNextHalf (low, high) c =
     | _ -> failwith "Ouch"
 
 let findSeatId (s: string) =
-    let row =
-        s.Substring(0, 7)
-        |> Seq.fold takeNextHalf (0, 127)
-        |> fst
-
-    let col =
-        s.Substring(7)
-        |> Seq.fold takeNextHalf (0, 7)
-        |> fst
-
+    let row = s.Substring(0, 7) |> Seq.fold takeNextHalf (0, 127) |> fst
+    let col = s.Substring(7) |> Seq.fold takeNextHalf (0, 7) |> fst
     row * 8 + col
 
 let seatIds = input |> Array.map findSeatId
 
 let solution1 = seatIds |> Array.max
 
-//
 // Part 2
-//
 seatIds
 |> Array.sort
 |> Array.pairwise
-|> Array.filter (fun (f, s) -> s - f = 2)
-|> Array.head
+|> Array.find (fun (f, s) -> s - f = 2)
 |> fun (f, _) -> f + 1
