@@ -29,7 +29,16 @@ let findSeatId (s: string) =
 
     row * 8 + col
 
-let solution1 =
-    input
-    |> Array.map findSeatId
-    |> Seq.max
+let seatIds = input |> Array.map findSeatId
+
+let solution1 = seatIds |> Seq.max
+
+//
+// Part 2
+//
+seatIds
+|> Array.sort
+|> Array.pairwise
+|> Array.filter (fun (f, s) -> s - f > 1)
+|> Array.head
+|> fun (f, s) -> (f + s) / 2
