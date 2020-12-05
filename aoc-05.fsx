@@ -2,18 +2,11 @@
 
 let input = "aoc-05-input.txt" |> System.IO.File.ReadAllLines
 
-let takeLowerHalf (low, high) =
-    let newHigh = low + (high + 1 - low) / 2 - 1
-    low, newHigh
-
-let takeHigherHalf (low, high) =
-    let newLow = high - (high + 1 - low) / 2 + 1
-    newLow, high
-
-let takeNextHalf state c =
+let takeNextHalf (low, high) c =
+    let half = (high + 1 - low) / 2
     match c with
-    | 'F' | 'L' -> state |> takeLowerHalf
-    | 'B' | 'R' -> state |> takeHigherHalf
+    | 'F' | 'L' -> low, (low + half - 1)
+    | 'B' | 'R' -> (high - half + 1), high
     | _ -> failwith "Ouch"
 
 let findSeatId (s: string) =
@@ -31,7 +24,7 @@ let findSeatId (s: string) =
 
 let seatIds = input |> Array.map findSeatId
 
-let solution1 = seatIds |> Seq.max
+let solution1 = seatIds |> Array.max
 
 //
 // Part 2
