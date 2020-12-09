@@ -21,3 +21,16 @@ let rec findError n =
     | _ -> n + 1 |> findError
 
 let solution1 = preambleLength |> findError
+
+// Part 2
+let rec checkSum windowSize =
+    let contiguousSet =
+        input
+        |> Array.windowed windowSize
+        |> Array.filter (fun a -> a |> Array.sum = solution1)
+        |> Array.tryHead
+    match contiguousSet with
+    | Some a -> (a |> Array.min) + (a |> Array.max)
+    | None -> (windowSize + 1) |> checkSum
+    
+let solution2 = 2 |> checkSum
