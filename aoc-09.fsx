@@ -7,21 +7,17 @@ let input =
 
 let preambleLength = 25
 
-let getValidSums n =
-    let preamble = input.[(n - preambleLength)..(n - 1)]
-    seq {
-        for i = 0 to preambleLength - 1 do
-            for j = i + 1 to preambleLength - 1 do
-                preamble.[i] + preamble.[j]
-    }
-    |> Seq.toArray
-
 let validate n =
-    n |> getValidSums |> Array.contains input.[n]
+    seq {
+        for i = n - preambleLength to n - 1 do
+            for j = i + 1 to n - 1 do
+                input.[i] + input.[j]
+    }
+    |> Seq.contains input.[n]
 
 let rec findError n =
     match n |> validate with
     | false -> input.[n]
     | _ -> n + 1 |> findError
 
-let solution1 = 25 |> findError
+let solution1 = preambleLength |> findError
