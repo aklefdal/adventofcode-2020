@@ -21,37 +21,56 @@ type State =
 
 type ProcessingResult =
     | NewState of State
+    | Looping of int
     | Done of int
 
-let program =
-    "aoc-08-input.txt"
-    |> System.IO.File.ReadAllLines
-    |> Array.map parseLine
+type ProgramResult =
+    | LoopingProgram of int
+    | CompletingProgram of int
 
-let getNewState (currentState: State): ProcessingResult =
-    match program.[currentState.CurrentPosition] with
-    | ("acc", n) ->
-        program.[currentState.CurrentPosition] <- ("done", 0) 
-        { Accumulator = currentState.Accumulator + n
-          CurrentPosition = currentState.CurrentPosition + 1 }
-        |> NewState
-    | ("nop", _) ->
-        program.[currentState.CurrentPosition] <- ("done", 0) 
-        { currentState with
-              CurrentPosition = currentState.CurrentPosition + 1 }
-        |> NewState
-    | ("jmp", n) ->
-        program.[currentState.CurrentPosition] <- ("done", 0) 
-        { currentState with
-              CurrentPosition = currentState.CurrentPosition + n }
-        |> NewState
-    | _ -> currentState.Accumulator |> Done
+let program = input |> Array.map parseLine
+
+let (++) (state: State) ((a, p): int * int) : State =
+    { Accumulator = state.Accumulator + a
+      CurrentPosition = state.CurrentPosition + p }
+
+let getNewState (program: (string * int)[]) (state: State): ProcessingResult =
+    if state.CurrentPosition >= program.Length then
+        state.Accumulator |> Done
+    else
+        match program.[state.CurrentPosition] with
+        | ("acc", n) ->
+            program.[state.CurrentPosition] <- ("done", 0)
+            state ++ (n, 1) |> NewState
+        | ("nop", _) ->
+            program.[state.CurrentPosition] <- ("done", 0) 
+            state ++ (0, 1) |> NewState
+        | ("jmp", n) ->
+            program.[state.CurrentPosition] <- ("done", 0) 
+            state ++ (0, n) |> NewState
+        | _ -> state.Accumulator |> Looping
     
-let rec getAccumulator (currentState: State): int =
-    match currentState |> getNewState with
-    | Done res -> res
-    | NewState state -> state |> getAccumulator
+let rec checkProgram (program: (string * int)[]) (currentState: State): ProgramResult =
+    match currentState |> (getNewState program) with
+    | Done res -> CompletingProgram res
+    | Looping res -> LoopingProgram res
+    | NewState state -> state |> (checkProgram program)
     
-let solution1 = { CurrentPosition = 0; Accumulator = 0 } |> getAccumulator
+let solution1 = { CurrentPosition = 0; Accumulator = 0 } |> (checkProgram program)
 
 // Part 2
+
+let swap (program:(string * int)[]) (swapNo: int) : unit =
+    match program.[swapNo] with
+    | ("nop", n) -> program.[swapNo] <- ("jmp", n)
+    | ("jmp", n) -> program.[swapNo] <- ("nop", n)
+    | _ -> ()
+
+let rec swapAndTry (swapNo: int) : int =
+    let program = input |> Array.map parseLine
+    swap program swapNo
+    match checkProgram program { CurrentPosition = 0; Accumulator = 0 } with
+    | CompletingProgram res -> res
+    | LoopingProgram _ -> swapNo + 1 |> swapAndTry
+
+let solution2 = 0 |> swapAndTry
