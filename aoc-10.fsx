@@ -1,5 +1,5 @@
 // https://adventofcode.com/2020/day/10
-
+#time "on"
 let input =
     "aoc-10-input.txt"
     |> System.IO.File.ReadAllLines
@@ -44,3 +44,6 @@ let solution2 =
     nodes
     |> Array.fold countFromHighest []
     |> List.head
+    |> snd
+
+#time "off"
