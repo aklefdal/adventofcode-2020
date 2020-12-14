@@ -6,16 +6,18 @@ open System.Text.RegularExpressions
 
 let input = "aoc-14-input.txt" |> File.ReadAllLines
 
+type Memory = Map<int64, int64>
+
 type Command =
-    | Mask of char []
+    | Mask of char[]
     | Mem of int64 * int64
 
-let bitArrayToInt64 (cs: char []) =
+let fromBits (cs: char[]) =
     cs
     |> String
     |> fun s -> Convert.ToInt64(s.ToString(), 2)
 
-let int64ToBitArray (i: int64) =
+let toBits (i: int64) =
     Convert.ToString(i, 2).PadLeft(36, '0').ToCharArray()
 
 let memRegex = Regex("^mem\[(\d+)\] = (\d+)$")
@@ -33,12 +35,12 @@ let parseCommand (s: string): Command =
 // Part 1
 let applyMask mask value =
     value
-    |> int64ToBitArray
+    |> toBits
     |> Array.zip mask
     |> Array.map (fun (m, b) -> if m = 'X' then b else m)
-    |> bitArrayToInt64
+    |> fromBits
 
-let processCommand ((values, currentMask): Map<int64, int64> * char []) command =
+let processCommand ((values, currentMask): Memory * char[]) command =
     match command with
     | Mask mask -> values, mask
     | Mem (pos, value) ->
@@ -53,7 +55,7 @@ let solution1 =
     |> Seq.sumBy (fun kvp -> kvp.Value)
 
 // Part 2
-let setBit (cs: char []) i c =
+let setBit (cs: char[]) i c =
     // Deep copy
     let s = cs |> String
     let a = s.ToCharArray()
@@ -68,11 +70,11 @@ let rec expandFloatingBits bitArray =
         |> List.map (setBit bitArray i)
         |> List.map expandFloatingBits
         |> List.concat
-    | None -> [ bitArray |> bitArrayToInt64 ]
+    | None -> [ bitArray |> fromBits ]
 
 let applyMemoryMask mask memSlot =
     memSlot
-    |> int64ToBitArray
+    |> toBits
     |> Array.zip mask
     |> Array.map (fun (m, b) ->
         match m with
@@ -82,10 +84,10 @@ let applyMemoryMask mask memSlot =
         | _ -> failwith "ouchhh")
     |> expandFloatingBits
 
-let addToValueMap value (valueMap: Map<int64, int64>) memPos =
+let addToValueMap value (valueMap: Memory) memPos : Memory =
     valueMap.Add(memPos, value)
 
-let processCommand2 (valueMap, currentMask) command =
+let processCommand2 ((valueMap, currentMask): Memory * char[] ) command =
     match command with
     | Mask mask -> valueMap, mask
     | Mem (pos, value) ->

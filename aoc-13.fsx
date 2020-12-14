@@ -1,10 +1,13 @@
 // https://adventofcode.com/2020/day/13
 
+open System
+open System.IO
+
 let input =
-    "aoc-13-input.txt" |> System.IO.File.ReadAllLines
+    "aoc-13-input.txt" |> File.ReadAllLines
 
 let splitOnChar (c: char) (s: string) =
-    s.Split([| c |], System.StringSplitOptions.RemoveEmptyEntries)
+    s.Split([| c |], StringSplitOptions.RemoveEmptyEntries)
 
 // Part 1
 let t0 = input.[0] |> int64
@@ -12,9 +15,8 @@ let t0 = input.[0] |> int64
 let busIds =
     input.[1]
     |> splitOnChar ','
-    |> Array.map System.Int64.TryParse
-    |> Array.filter fst
-    |> Array.map snd
+    |> Array.filter ((<>) "x")
+    |> Array.map Int64.Parse
 
 let findWaitTime t0 busId = busId, busId - (t0 % busId)
 
@@ -33,7 +35,7 @@ let buses =
     |> Array.toList
     |> List.mapi (fun i s -> int64 i, s)
     |> List.filter (fun (_, s) -> s <> "x")
-    |> List.map (fun (i, s) -> i, s |> System.Int64.Parse)
+    |> List.map (fun (i, s) -> i, s |> Int64.Parse)
     |> List.sortBy snd
 
 let rec isValidTimeForBus (currentTime, increment) (offset, busId) =
