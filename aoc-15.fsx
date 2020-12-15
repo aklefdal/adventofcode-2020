@@ -1,17 +1,16 @@
-// https://adventofcode.com/2020/day/5
+// https://adventofcode.com/2020/day/15
 
 open System
+open System.Collections.Generic
 
+let testInput = "0,3,6"
 let input = "1,20,11,6,12,0"
 
 let splitOnChar (c: char) (s: string) =
     s.Split([| c |], StringSplitOptions.RemoveEmptyEntries)
 
-let initialTurns =
-    input
-    |> splitOnChar ','
-    |> Array.toList
-    |> List.map int
+let toTurns =
+    splitOnChar ',' >> Array.toList >> List.map int
 
 let addNextTurn turns =
     match turns with
@@ -29,9 +28,13 @@ let rec addNextTurns turns =
     let withNewTurn = turns |> addNextTurn
     if withNewTurn |> List.length >= 2020 then withNewTurn |> List.head else withNewTurn |> addNextTurns
 
-let solution1 = initialTurns |> List.rev |> addNextTurns
+let solution1test =
+    testInput |> toTurns |> List.rev |> addNextTurns
 
-// Part 2
+let solution1 =
+    input |> toTurns |> List.rev |> addNextTurns
+
+// Part 2 - Immutable, and unfortunately a little slow. Finds solution in ~1.5 minutes
 type State =
     { Count: int
       PreviousSpoken: Map<int, int>
@@ -73,6 +76,63 @@ let createState turns =
              LastSpoken = 0 }
 
 let solution2 =
-    initialTurns
+    input
+    |> toTurns
     |> createState
     |> addNextTurns2 30_000_000
+
+// Part 2 - Object programming, with full mutability
+type Solver private () =
+    let mutable count = 0
+    let mutable lastSpoken = 0
+    let previousSpoken = Dictionary<int, int>()
+
+    let initialize () =
+        count <- 0
+        lastSpoken <- 0
+        previousSpoken.Clear()
+
+    let addToState (i: int) =
+        if count > 0 then previousSpoken.Add(lastSpoken, count)
+        count <- count + 1
+        lastSpoken <- i
+
+    let addNextTurn () =
+        let thisTurn =
+            match previousSpoken.TryGetValue(lastSpoken) with
+            | true, lastPos -> count - lastPos
+            | _ -> 0
+
+        if previousSpoken.ContainsKey(lastSpoken) then
+            previousSpoken.Item(lastSpoken) <- count
+        else
+            previousSpoken.Add(lastSpoken, count)
+
+        count <- count + 1
+        lastSpoken <- thisTurn
+
+    let rec addNextTurns max =
+        addNextTurn ()
+        if count >= max then lastSpoken else addNextTurns max
+
+    let addInitialState turns =
+        initialize ()
+        turns |> List.iter addToState
+    with
+
+        member private __.SolveInternal((initialTurns, max): int list * int) =
+            initialTurns |> addInitialState
+            addNextTurns max
+
+        static member Solve((initialTurns, max): int list * int) =
+            let solver = Solver()
+            solver.SolveInternal(initialTurns, max)
+
+let solution1test = Solver.Solve(testInput |> toTurns, 2020)
+let solution1 = Solver.Solve(input |> toTurns, 2020)
+
+let solution2test =
+    Solver.Solve(testInput |> toTurns, 30_000_000)
+
+let solution2 =
+    Solver.Solve(input |> toTurns, 30_000_000)
