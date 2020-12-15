@@ -12,6 +12,8 @@ let splitOnChar (c: char) (s: string) =
 let toTurns =
     splitOnChar ',' >> Array.toList >> List.map int
 
+// Part 1
+
 let addNextTurn turns =
     match turns with
     | [] -> failwith "ouch?!?!?"
@@ -75,22 +77,19 @@ let createState turns =
              PreviousSpoken = Map.empty
              LastSpoken = 0 }
 
+#time "on"
 let solution2 =
     input
     |> toTurns
     |> createState
     |> addNextTurns2 30_000_000
+#time "off"
 
 // Part 2 - Object programming, with full mutability
 type Solver private () =
     let mutable count = 0
     let mutable lastSpoken = 0
     let previousSpoken = Dictionary<int, int>()
-
-    let initialize () =
-        count <- 0
-        lastSpoken <- 0
-        previousSpoken.Clear()
 
     let addToState (i: int) =
         if count > 0 then previousSpoken.Add(lastSpoken, count)
@@ -111,18 +110,17 @@ type Solver private () =
         count <- count + 1
         lastSpoken <- thisTurn
 
-    let rec addNextTurns max =
+    let rec addMoreTurns max =
         addNextTurn ()
-        if count >= max then lastSpoken else addNextTurns max
+        if count >= max then
+            lastSpoken
+        else
+            addMoreTurns max
 
-    let addInitialState turns =
-        initialize ()
-        turns |> List.iter addToState
     with
-
         member private __.SolveInternal((initialTurns, max): int list * int) =
-            initialTurns |> addInitialState
-            addNextTurns max
+            initialTurns |> List.iter addToState
+            addMoreTurns max
 
         static member Solve((initialTurns, max): int list * int) =
             let solver = Solver()
