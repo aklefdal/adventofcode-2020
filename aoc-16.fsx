@@ -21,7 +21,7 @@ let input =
 
 let (fieldsInput, myTicketInput, nearbyTicketInput) =
     match input with
-    | [ fieldsInput; myTicketInput; nearbyTicketInput ] -> fieldsInput, myTicketInput, nearbyTicketInput
+    | fieldsInput :: myTicketInput :: nearbyTicketInput :: _ -> fieldsInput, myTicketInput, nearbyTicketInput
     | _ -> failwith "ouch"
 
 let fieldRegex =
@@ -55,13 +55,14 @@ let myTicket =
     |> List.head
     |> splitOnChar ','
     |> List.map int
+    |> List.toArray
 
 let nearbyTickets =
     nearbyTicketInput
     |> splitOnString newLine
     |> List.skip 1
     |> List.map ((splitOnChar ',') >> List.map int)
-    
+
 let isValidForField value field =
     (field.From1 <= value && value <= field.To1)
     || (field.From2 <= value && value <= field.To2)
@@ -73,13 +74,65 @@ let findInvalidValues fields values =
     values
     |> List.filter ((isValidValue fields) >> not)
 
-[7;3;47] |> findInvalidValues fields
-[40;4;50] |> findInvalidValues fields
-[55;2;20] |> findInvalidValues fields
-[38;6;12] |> findInvalidValues fields
-
 let solution1 =
     nearbyTickets
     |> List.map (findInvalidValues fields)
     |> List.concat
     |> List.sum
+
+// part 2
+let isValidTicket fields values =
+    values |> List.forall (isValidValue fields)
+
+let validNearbyTickets =
+    nearbyTickets
+    |> List.filter (isValidTicket fields)
+
+let findValidPositions (field: Field) (ticket: int list): bool list =
+    ticket
+    |> List.map (fun value -> isValidForField value field)
+
+let findValidFieldPositions (tickets: int list list) (field: Field): (string * int list) =
+    let rec checkPosition (validations: bool list list) (pos: int) (positions: int list) =
+        if pos >= validations.Head.Length then
+            positions
+        else
+            let isValidPos =
+                validations
+                |> List.map (List.skip pos)
+                |> List.forall (List.head)
+
+            if isValidPos
+            then checkPosition validations (pos + 1) (pos :: positions)
+            else checkPosition validations (pos + 1) (positions)
+
+    let validatedTickets =
+        tickets |> List.map (findValidPositions field)
+
+    let validPositions = checkPosition validatedTickets 0 []
+    field.FieldName, validPositions
+
+let allocatePosition (takenPositions: (string * int) list) ((fieldName, validPositions): string * int list) =
+    let position =
+        validPositions
+        |> List.filter (fun i ->
+            takenPositions
+            |> List.map snd
+            |> List.contains i
+            |> not)
+        |> List.head
+
+    (fieldName, position) :: takenPositions
+
+let solution2 =
+    let fieldsPositions =
+        fields
+        |> List.map (findValidFieldPositions validNearbyTickets)
+        |> List.sortBy (fun (_, ns) -> ns.Length)
+        |> List.fold allocatePosition []
+    
+    fieldsPositions
+    |> List.filter (fun (name, _) -> name.StartsWith("departure"))
+    |> List.map snd
+    |> List.map (fun pos -> myTicket.[pos] |> int64)
+    |> List.reduce (*)
