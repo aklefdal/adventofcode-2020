@@ -1,4 +1,4 @@
-// https://adventofcode.com/2020/day/
+// https://adventofcode.com/2020/day/19
 
 open System
 open System.Collections.Generic
@@ -11,29 +11,27 @@ let splitOnChar (c: char) (s: string) =
 let splitOnString (delimiter: string) (s: string) =
     s.Split([| delimiter |], StringSplitOptions.RemoveEmptyEntries)
     |> List.ofArray
-let trim (s:string) = s.Trim()
+
+let trim (s: string) = s.Trim()
 let newLine = "\r\n"
 let entryDelimiter = newLine + newLine
 
-let input = "aoc-19-input.txt" |> File.ReadAllText
-
-let inputParts = input |> splitOnString entryDelimiter
-
-// Part 1
+type RuleNumber = RuleNumber of int
 
 type AndRule =
-    | Str of string
-    | LinkedRules of int list
+    | Character of char
+    | LinkedRules of RuleNumber list
 
 let parseAndRule s =
     if s = "\"a\"" then
-        Str "a"
+        Character 'a'
     elif s = "\"b\"" then
-        Str "b"
+        Character 'b'
     else
         s
         |> splitOnChar ' '
         |> List.map int
+        |> List.map RuleNumber
         |> LinkedRules
 
 let parseRule (s: string) =
@@ -42,45 +40,94 @@ let parseRule (s: string) =
 
     let orRules =
         a.[1] |> splitOnChar '|' |> List.map parseAndRule
-    ruleNumber, orRules
 
-let crossProduct (a: string list) (b: string list) =
-    seq {
-        for el1 in a do
-            for el2 in b do
-                yield el1 + el2
-    } |> List.ofSeq
+    ruleNumber |> RuleNumber, orRules
 
-let rec findPossibilitiesForAndRule (rules: IDictionary<int,AndRule list>) (rule: AndRule) : string list =
-    match rule with
-    | Str s -> [ s ]
-    | LinkedRules ruleNumbers ->
-        ruleNumbers
-        |> List.map (findPossibilities rules)
-        |> List.reduce crossProduct
+// Part 1
+module Part1 =
 
-and findPossibilities (rules: IDictionary<int,AndRule list>) (ruleNumber: int) : string list =
-    rules.[ruleNumber] |> List.map (findPossibilitiesForAndRule rules) |> List.concat
-    
-//let rulesInput =
-//     [ "0: 4 1 5"
-//       "1: 2 3 | 3 2"
-//       "2: 4 4 | 5 5"
-//       "3: 4 5 | 5 4"
-//       "4: \"a\""
-//       "5: \"b\"" ]
+    let crossProduct (a: string list) (b: string list) =
+        seq {
+            for el1 in a do
+                for el2 in b do
+                    yield el1 + el2
+        }
+        |> List.ofSeq
 
-let rules =
-    inputParts.[0]
-    |> splitOnString newLine
-    |> List.map parseRule
-    |> dict
+    let rec findPossibilitiesForAndRule (rules: IDictionary<RuleNumber, AndRule list>) (rule: AndRule): string list =
+        match rule with
+        | Character c -> [ c.ToString() ]
+        | LinkedRules ruleNumbers ->
+            ruleNumbers
+            |> List.map (findPossibilities rules)
+            |> List.reduce crossProduct
 
-let possibilities = 0 |> findPossibilities rules |> Set.ofList
+    and findPossibilities (rules: IDictionary<RuleNumber, AndRule list>) (ruleNumber: RuleNumber): string list =
+        rules.[ruleNumber]
+        |> List.map (findPossibilitiesForAndRule rules)
+        |> List.concat
 
-let solution1 =
-    inputParts.[1]
-    |> splitOnString newLine
-    |> List.filter (fun s -> possibilities |> Set.contains s)
-    |> List.length
-    
+    let inputParts =
+        "aoc-19-input.txt"
+        |> File.ReadAllText
+        |> splitOnString entryDelimiter
+
+    let rules =
+        inputParts.[0]
+        |> splitOnString newLine
+        |> List.map parseRule
+        |> dict
+
+    let possibilities =
+        0
+        |> RuleNumber
+        |> findPossibilities rules
+        |> Set.ofList
+
+    let solution1 =
+        inputParts.[1]
+        |> splitOnString newLine
+        |> List.filter (fun s -> possibilities |> Set.contains s)
+        |> List.length
+
+// Part 2
+module Part2 =
+
+    let rec matchAndRule rules message (rule: AndRule): char [] option =
+        match rule with
+        | Character c ->
+            if message |> Array.length > 0 && message.[0] = c then
+                message.[1..] |> Some
+            else
+                None
+        | LinkedRules ruleNumbers ->
+            match ruleNumbers with
+            | [] -> Some message
+            | ruleNumber :: rest ->
+                ruleNumber
+                |> matchRule rules message
+                |> Option.bind (fun s -> rest |> LinkedRules |> (matchAndRule rules s))
+
+    and matchRule (rules: IDictionary<RuleNumber,AndRule list>) (message: char []) (ruleNumber: RuleNumber) : char [] option =
+        rules.[ruleNumber] |> List.tryPick (matchAndRule rules message)
+
+    let inputParts =
+        "aoc-19-input.txt"
+        |> File.ReadAllText
+        |> splitOnString entryDelimiter
+
+    let rules =
+        inputParts.[0]
+        |> splitOnString newLine
+        |> List.map parseRule
+        |> List.filter (fun (i, _) -> i <> RuleNumber 8 && i <> RuleNumber 11)
+        |> List.append [ "8: 42 | 42 8" |> parseRule; "11: 42 31 | 42 11 31" |> parseRule ]
+        |> dict
+
+    let findMatch rules (message: string) =
+        RuleNumber 0 |> matchRule rules (message.ToCharArray())
+    let solution2 =
+        inputParts.[1]
+        |> splitOnString newLine
+        |> List.filter (fun s -> s |> findMatch rules |> Option.isSome)
+        |> List.length
